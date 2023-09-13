@@ -2,7 +2,7 @@ fastapi
 uvicorn
 flake8
 pre-commit
-pydantic
+pydantic[email]
 sqlalchemy
 sqlmodel
 sqlalchemy[asyncio]
@@ -10,3 +10,4 @@ alembic
 asyncpg
 python-dotenv
 alembic
+psycopg2-binary
