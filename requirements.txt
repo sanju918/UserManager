@@ -8,3 +8,5 @@ sqlmodel
 sqlalchemy[asyncio]
 alembic
 asyncpg
+python-dotenv
+alembic
