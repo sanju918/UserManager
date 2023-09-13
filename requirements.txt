@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+flake8
+pre-commit
+pydantic
+sqlalchemy
+sqlmodel
+sqlalchemy[asyncio]
+alembic
+asyncpg
