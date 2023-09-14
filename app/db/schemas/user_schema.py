@@ -17,6 +17,7 @@ class UserUpdateSchema(UserBaseSchema):
 
 
 class UserPwdUpdateSchema(BaseModel):
+    email: EmailStr
     current_password: SecretStr
     new_password: constr(min_length=8)
 

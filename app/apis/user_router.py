@@ -5,9 +5,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
 from ..db.db_config import get_async_db
-from ..db.schemas.user_schema import UserSchema, UserCreateSchema
+from ..db.schemas.user_schema import UserSchema, UserCreateSchema, UserPwdUpdateSchema
 
-from .crud.user_crud import get_user, get_users, create_user, get_user_by_email
+from .crud.user_crud import (
+    get_user,
+    get_users,
+    create_user,
+    get_user_by_email,
+    update_password,
+)
 
 router = fastapi.APIRouter()
 
@@ -45,3 +51,20 @@ async def create_new_user(
     res = await create_user(db=async_db, user=user)
 
     return res
+
+
+@router.post("/forgot-password", tags=["Users"])
+async def forgot_password(
+    password: str,
+    request_body: UserPwdUpdateSchema,
+    async_db: AsyncSession = Depends(get_async_db),
+):
+    res = await update_password(db=async_db, user=request_body, old_pass=password)
+    return res
+
+
+@router.post("/users/{email}", tags=["Users"], response_model=UserSchema)
+async def read_user_by_email(
+    email: str, async_db: AsyncSession = Depends(get_async_db)
+):
+    return await get_user_by_email(email=email, db=async_db)

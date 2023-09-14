@@ -1,7 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import update, insert, delete
+from sqlalchemy import update as sql_update
 import bcrypt
+from fastapi import Depends, HTTPException, status
 
 from app.db.models.user_model import User
 from app.db.db_config import get_async_db
@@ -26,7 +27,8 @@ async def get_users(db: AsyncSession):
 
 
 async def create_user(db: AsyncSession, user: UserCreateSchema):
-    hashed_password = bcrypt.hashpw(user.password.encode("utf-8"), bcrypt.gensalt())
+    hashed_password = encode_pwd(user.password)
+    # hashed_password = bcrypt.hashpw(user.password.encode("utf-8"), bcrypt.gensalt())
     db_user = User(
         email=user.email,
         role=user.role,
@@ -55,8 +57,31 @@ async def get_user_by_email(db: AsyncSession, email: str):
     return result.scalar_one_or_none()
 
 
+async def update_password(db: AsyncSession, user: UserPwdUpdateSchema, old_pass: str):
+    res_user = await get_user_by_email(db, user.email)
+
+    if not verify_password(old_pass, res_user.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authorized"
+        )
+    encoded_pwd = encode_pwd(user.new_password)
+    print("Encoded PWD: ", encoded_pwd)
+    query = (
+        sql_update(User)
+        .where(User.email == res_user.email)
+        .values(password=encoded_pwd.decode("utf-8"))
+    )
+    res = await db.execute(query)
+    print(res)
+    return {"details": "password updated successfully"}
+
+
 # Function to verify a user's password
 def verify_password(plain_password, hashed_password):
     return bcrypt.checkpw(
         plain_password.encode("utf-8"), hashed_password.encode("utf-8")
     )
+
+
+def encode_pwd(plain_password):
+    return bcrypt.hashpw(plain_password.encode("utf-8"), bcrypt.gensalt())
